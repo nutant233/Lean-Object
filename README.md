@@ -104,17 +104,38 @@ ships the `@Overwrite` form.
 
 Official AE2 has **no interning for storage keys**. `AEItemKey`'s constructor and its three-argument
 factory are both `private`, so every lookup that goes through `AEItemKey.of(...)` builds a new key
-object — and a big AE2 network is nothing but keys. A late-game base with large banks of interfaces,
-storage buses, export/import buses and crafting CPUs holds an enormous number of them, all
-re-allocated on demand, and every lookup compares them by value.
+object — and a big AE2 network is nothing but keys.
 
-This is the workload the feature targets, so it is the one worth turning on for a tech pack:
+### Why the construction rate is so high in a tech pack
 
-- Tagged keys (`AEItemKey`/`AEFluidKey` carrying NBT) are cached per item/fluid, keyed by a copy of the
-  tag, so a repeated lookup returns the existing key instead of allocating another one.
-- Keys with no NBT collapse onto a single shared instance per item/fluid.
+In a modded pack, AE2 rarely works on its own storage. Storage buses, import and export buses and
+interfaces connect the ME network to *other* mods' inventories — chests, barrels, machines, drawers,
+pipes — and every item moved across that boundary is converted between an `ItemStack` and an AE key.
+Those transfers run continuously in bulk, so key construction happens constantly, not once at setup:
+a late-game base with large banks of interfaces, storage buses and crafting CPUs drives this path
+per item, per bus, per tick.
+
+### What vanilla pays per key
+
+Allocation is not the whole cost — the constructor computes and stores the key's hash every time:
+
+```
+41: invokestatic  java/util/Objects.hash:([Ljava/lang/Object;)I
+44: putfield      AEItemKey.hashCode:I
+```
+
+So each conversion costs *allocate an object + hash its components + compare by value*. This feature
+collapses all three:
+
+- Keys with no NBT become a **field read** — the shared instance is fetched from the item, with no
+  allocation and no hashing at all.
+- Tagged keys cost **one hash lookup keyed by the NBT copy**, and that is the whole cost. Only the
+  first lookup for a given tag allocates; repeats just return the existing key.
 - Because keys then exist once, `equals` can be identity, and the resulting fast reference/hash
   lookups are what a large ME network spends its time on.
+
+That is why this is the feature worth enabling for a tech pack: it speeds up key *creation*, not just
+key lookup.
 
 ### What "interning" means for you
 
