@@ -10,8 +10,90 @@ version = mod_version
 group = mod_group_id
 
 repositories {
-    mavenCentral()
     mavenLocal()
+    flatDir {
+        dir "libs"
+    }
+    mavenCentral()
+
+    maven { url = 'https://maven.gtodyssey.com/releases' }
+    exclusiveContent { // Curseforge Maven
+        forRepository { maven { url = "https://cursemaven.com" } }
+        filter { includeGroup("curse.maven") }
+    }
+
+    exclusiveContent { // terraformers - EMI
+        forRepository { maven { url = "https://maven.terraformersmc.com/releases/" } }
+        filter { includeGroup("dev.emi") }
+    }
+
+    exclusiveContent { // Xaero's
+        forRepository { maven { url = "https://chocolateminecraft.com/maven/" } }
+        filter { includeGroupAndSubgroups("xaero") }
+    }
+
+    maven {
+        url "https://maven.shadowsoffire.dev/releases"
+        content {
+            includeGroup "dev.shadowsoffire"
+        }
+    }
+    maven {
+        name = 'GeckoLib'
+        url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+        content {
+            includeGroupByRegex("software\\.bernie.*")
+            includeGroup("com.eliotlash.mclib")
+        }
+    }
+
+    maven { // JEI
+        name = "Jared's Maven"
+        url = "https://maven.blamejared.com/"
+    }
+
+    maven { // JEI mirror, AE2
+        name = "ModMaven"
+        url = "https://modmaven.dev"
+    }
+
+    maven {
+        url "https://maven.firstdarkdev.xyz/snapshots/"
+    }
+    maven {
+        url "https://maven.quiltmc.org/repository/release/"
+    }
+    maven {
+        url "https://maven.parchmentmc.org"
+    }
+    maven {
+        url "https://maven.architectury.dev/"
+    }
+    maven {
+        url "https://maven.teamresourceful.com/repository/maven-public/"
+    }
+    maven {
+        url "https://maven.jt-dev.tech/releases/"
+    }
+    maven {
+        url "https://mvnrepository.com/artifact/com.hollingsworth.ars_nouveau"
+    }
+    maven {
+        url "https://maven.bawnorton.com/releases"
+    }
+    maven {
+        url "https://maven.enjarai.dev/mirrors"
+    }
+    maven {
+        url "https://maven.blamejared.com/vazkii/botania/Botania/"
+    }
+    maven {
+        url "https://maven.twelveiterations.com/repository/maven-public/"
+
+        content {
+            includeGroup "net.blay09.mods"
+        }
+    }
 }
 
 base {
@@ -125,4 +207,16 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.42")
 
     annotationProcessor("org.spongepowered:mixin:0.8.7:processor")
+    api(annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.5"))
+
+    modImplementation("curse.maven:modernfix-790626:7928686")
+    modImplementation("curse.maven:ferritecore-429235:4810975")
+    modImplementation("curse.maven:spark-361579:4738952")
+
+    modImplementation("appeng:appliedenergistics2-forge:15.4.10")
+    modRuntimeOnly("org.appliedenergistics:guideme:20.1.15")
+
+    jarJar(implementation("com.gto.fastcollection:FastCollection:26.8.7"))
+
+    modImplementation("curse.maven:farmers-delight-398521:8083474")
 }

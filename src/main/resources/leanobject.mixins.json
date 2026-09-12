@@ -1,0 +1,43 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "io.github.nutant.leanobject.mixin",
+  "plugin": "io.github.nutant.leanobject.Config",
+  "refmap": "leanobject.refmap.json",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "aekey.AEFluidKeyAccess",
+    "aekey.AEFluidKeyMixin",
+    "aekey.AEItemKeyAccess",
+    "aekey.AEItemKeyMixin",
+    "aekey.FluidMixin",
+    "aekey.ItemMixin",
+    "farmersdelight.ToolActionIngredientSerializerMixin",
+    "ingredient.IngredientMixin",
+    "ingredient.ItemMixin",
+    "ingredient.StrictNBTIngredientMixin",
+    "ingredient.TagKeyMixin",
+    "ingredient.VanillaIngredientSerializerMixin",
+    "nbt.CompoundTagMixin",
+    "nbt.CompoundTagMixin$Type",
+    "nbt.ListTagMixin",
+    "nbt.ListTagMixin$Type",
+    "nbt.NbtOpsMixin",
+    "resourcekey.ResourceKeyMixin",
+    "resourcekey.safe.ResourceKeyMixin",
+    "resourcelocation.ResourceLocationMixin",
+    "tagkey.TagKeyMixin",
+    "tagkey.safe.TagKeyMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1,
+    "maxShiftBy": 5
+  },
+  "client": [
+    "model.ModelBakeryMixin",
+    "model.MultipartBakedModelMixin",
+    "model.SimpleBakedModelMixin",
+    "model.WeightedBakedModelMixin",
+    "resourcelocation.ModelResourceLocationMixin"
+  ]
+}
