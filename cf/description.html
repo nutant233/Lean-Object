@@ -135,6 +135,11 @@ compatible but slightly slower.</p>
   builds can change the internals it hooks, in which case the feature simply stops applying.</li>
   <li><strong>Optional integrations are auto-detected.</strong> Features whose mod is not installed are
   skipped automatically.</li>
+  <li><strong><code>ResourceLocation</code> interning costs CPU as well as saving memory.</strong>
+  <code>ResourceLocation</code> is constructed extremely often, and interning adds a hash plus a
+  lock-guarded table lookup to every construction. It pays off when the same id is created repeatedly;
+  it can cost CPU on hot paths that keep producing <em>distinct</em> ids, where nothing gets shared. If
+  you are chasing CPU rather than memory, try turning this one feature off first.</li>
 </ul>
 
 <h2>Building from source</h2>

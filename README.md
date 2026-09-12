@@ -90,7 +90,7 @@ Enabled state shown is the default written to `config/leanobject.toml` on first 
 |---|---|---|---|---|
 | `resourceKey` | on | yes | — | Deduplicates `ResourceKey` creation; `equals` becomes identity |
 | `tagKey` | on | yes | — | Deduplicates `TagKey` creation; `equals`/`hashCode` become identity |
-| `resourceLocation` | on | no | — | Interns `ResourceLocation` namespace/path/variant strings |
+| `resourceLocation` | on | no | — | Interns `ResourceLocation` namespace/path/variant strings. Saves memory but adds per-construction CPU — see below |
 | `ingredient` | on | no | — | Single-entry `Ingredient` instances are shared instead of rebuilt |
 | `model` | on | no | — | Leaner containers for baked block/item model objects |
 | `nbt` | on | no | — | Replaces the maps/lists inside `CompoundTag`, `ListTag` and `NbtOps` record building |
@@ -99,6 +99,17 @@ Enabled state shown is the default written to `config/leanobject.toml` on first 
 
 `resourceKey` and `tagKey` are the only features with a `.safe.` variant. Every other feature only
 ships the `@Overwrite` form.
+
+### A note on `resourceLocation` and CPU
+
+`ResourceLocation` is constructed extremely often, and this feature adds work to every construction:
+the raw namespace and path strings must be hashed and looked up in the intern table before the
+location is built, and the table is lock-guarded.
+
+It pays off when the same id is created repeatedly — the duplicate strings disappear and the work is
+amortised. It can cost CPU when a hot path keeps producing **distinct** ids, because then every one of
+them pays the hash and the failed lookup and nothing gets shared. If you are chasing CPU rather than
+memory, or another mod builds ids in a tight loop, this is the one feature to try turning off first.
 
 ### The aeKey feature matters most in late-game tech packs
 
