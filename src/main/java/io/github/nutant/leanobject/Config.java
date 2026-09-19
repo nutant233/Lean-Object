@@ -3,6 +3,7 @@ package io.github.nutant.leanobject;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
+import io.github.nutant.leanobject.compat.FerriteCore;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLPaths;
 import org.apache.logging.log4j.LogManager;
@@ -95,6 +96,13 @@ public final class Config implements IMixinConfigPlugin {
         loadAllConfigs();
         writeConfig();
         logConfigSummary();
+
+        // FerriteCore redirects the same ModelResourceLocation call this mod does; two redirects on one
+        // instruction cannot both inject, so its own handling is switched off while this mod owns it.
+        if (featureConfigs.get("resourceLocation").enabled && FMLLoader.getLoadingModList().getModFileById("ferritecore") != null) {
+            LOGGER.info("FerriteCore is installed: disabling its ModelResourceLocation cache");
+            FerriteCore.setMrl();
+        }
     }
 
     private static void registerFeaturePackage(String name, String displayName, String description) {

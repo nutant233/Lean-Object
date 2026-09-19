@@ -18,10 +18,11 @@ import java.util.stream.Stream;
 /**
  * Deduplicates {@link Ingredient} construction for the single-entry cases.
  *
- * <p>Every vanilla path - {@code of(TagKey)}, {@code of(ItemLike...)}, {@code of(ItemStack...)},
- * {@code of(Stream)} and the codecs - funnels through {@code fromValues}, so that is the one place
- * worth hooking. A one-entry ingredient becomes the shared instance cached on its {@code Item} or
- * {@code TagKey}; anything else keeps the original behaviour.
+ * <p>{@code of(TagKey)}, {@code of(ItemLike...)} and {@code of(ItemStack...)} each build their
+ * ingredient themselves, so all three are hooked. The fourth, {@code fromValues}, is the one that
+ * matters most: the item codec and the network stream codec both end up there, so recipe JSON and
+ * packets are covered as well. A one-entry ingredient becomes the shared instance cached on its
+ * {@code Item} or {@code TagKey}; anything else keeps the original behaviour.
  *
  * <p>The payoff is not only the avoided allocation: because one instance is shared, the lazily built
  * {@code itemStacks} array and {@code stackingIds} list that every {@code Ingredient} carries are

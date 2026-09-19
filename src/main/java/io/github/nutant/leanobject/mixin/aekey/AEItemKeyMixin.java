@@ -1,8 +1,6 @@
 package io.github.nutant.leanobject.mixin.aekey;
 
-import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
-import io.github.nutant.leanobject.compat.ae2.IAEFluid;
 import io.github.nutant.leanobject.compat.ae2.IAEItem;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentPatch;
@@ -10,31 +8,52 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
-import net.minecraft.world.level.material.Fluid;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Unique;
-
-import java.util.function.UnaryOperator;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
 /**
  * Deduplicates {@link AEItemKey} onto one instance per logical item value and reduces comparison to a
  * reference check.
  *
- * <p>AE2 builds a fresh key - and computes {@code ItemStack.hashItemAndComponents} - on every
- * {@code of} call, and a large ME network calls this constantly. Both {@code of} overloads route
- * through the per-item cache, so repeats return the existing key instead of allocating and hashing
- * another one, and {@code equals} can then be {@code ==}. The component-carrying keys are keyed by a
- * copy of the stack, matching what AE2 itself stores.
+ * <p>AE2 builds a fresh key - copying the stack and hashing it - on every {@code of} call, and a large
+ * ME network calls this constantly. Every factory that produces a key goes through the per-item cache:
+ * the two {@code of} overloads, the packet reader, and the codec factory that also backs
+ * {@code fromTag}. A miss runs the cache level's own factory, which constructs the key directly, so
+ * the vanilla key is still the only one created per value.
+ *
+ * <p>The keys that carry components are cached per item, keyed by their
+ * {@link DataComponentPatch} - which is what identifies a key beyond the item itself. AE2's own
+ * component-carrying keys are built from exactly that pair, so the same patch always resolves to the
+ * same instance.
+ *
+ * <p>With one key per logical value, {@code equals} can be a reference check, and the hash AE2 caches
+ * in its constructor can be the identity hash - see the redirect below.
  */
 @Mixin(value = AEItemKey.class, priority = 100000)
 public class AEItemKeyMixin {
 
+    /**
+     * AE2 computes the content hash in its constructor and stores it in a final field which
+     * {@code hashCode()} merely returns. Injecting at the computation site therefore turns the cached
+     * hash into the identity hash while leaving {@code hashCode()} itself - and every other use of the
+     * field - untouched, keeping it consistent with the reference {@code equals} below.
+     */
+    @Redirect(
+            method = "<init>",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;hashItemAndComponents(Lnet/minecraft/world/item/ItemStack;)I"),
+            remap = false
+    )
+    private int hash(ItemStack p_331961_) {
+        return System.identityHashCode(this);
+    }
 
     /**
      * @author nutant233
-     * @reason Reuse the key for stacks without components; cache the ones that carry them
+     * @reason Codec factory behind {@code CODEC}/{@code fromTag}: reuse the component-free key, cache the
+     * ones that carry components
      */
     @Overwrite(remap = false)
     private static AEItemKey lambda$static$4(Holder<Item> item, DataComponentPatch patch) {
@@ -60,7 +79,7 @@ public class AEItemKeyMixin {
 
     /**
      * @author nutant233
-     * @reason Reuse the key for stacks without components; cache the ones that carry them
+     * @reason Route through the deduplicating ItemStack overload
      */
     @Overwrite(remap = false)
     public static AEItemKey fromPacket(RegistryFriendlyByteBuf data) {
@@ -69,7 +88,7 @@ public class AEItemKeyMixin {
 
     /**
      * @author nutant233
-     * @reason Route through the deduplicating ItemStack overload
+     * @reason Return the item's shared component-free key
      */
     @Overwrite(remap = false)
     public static AEItemKey of(ItemLike item) {
@@ -84,14 +103,5 @@ public class AEItemKeyMixin {
     @Overwrite(remap = false)
     public boolean equals(Object other) {
         return other == this;
-    }
-
-    /**
-     * @author nutant233
-     * @reason Identity hash, consistent with the identity equals above
-     */
-    @Overwrite(remap = false)
-    public int hashCode() {
-        return System.identityHashCode(this);
     }
 }

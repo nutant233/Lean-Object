@@ -12,10 +12,14 @@ import org.spongepowered.asm.mixin.Unique;
 /**
  * Caches the AE2 storage keys belonging to this item.
  *
- * <p>The key for the item with no components is held directly, and keys carrying component data are
- * looked up in a weak cache keyed by a copy of the stack - {@code AEItemKey.of} itself copies the
- * stack, so a copy is the right key. With one key per logical value,
- * {@link AEItemKeyMixin} can compare by reference.
+ * <p>The key for the item with no components is held directly, and keys that carry component data are
+ * looked up in a weak cache keyed by their {@link DataComponentPatch} - the patch is what distinguishes
+ * one such key from another, so an equal patch always resolves to the same instance. With one key per
+ * logical value, {@link AEItemKeyMixin} can compare by reference.
+ *
+ * <p>Both caches build their entries through {@link AEItemKeyAccess}, which invokes AE2's private
+ * constructor: the public factories are overwritten to read these very caches, so they cannot be used
+ * to produce the value that is being cached.
  */
 @Mixin(Item.class)
 public abstract class ItemMixin implements IAEItem {
@@ -39,7 +43,7 @@ public abstract class ItemMixin implements IAEItem {
     public WeakValueHashCache<DataComponentPatch, AEItemKey> lo$getComponentAEKeyCache() {
         var cache = leanObject$componentKeys;
         if (cache == null) {
-            leanObject$componentKeys = cache = new WeakValueHashCache<>(p->AEItemKeyAccess.of(new ItemStack(((Item) (Object) this).builtInRegistryHolder(),1,p)));
+            leanObject$componentKeys = cache = new WeakValueHashCache<>(p -> AEItemKeyAccess.of(new ItemStack(((Item) (Object) this).builtInRegistryHolder(), 1, p)));
         }
         return cache;
     }

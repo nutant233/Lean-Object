@@ -13,6 +13,10 @@ repositories {
     mavenCentral()
     mavenLocal()
     maven { url = 'https://maven.gtodyssey.com/releases' }
+    exclusiveContent { // Modrinth maven, used for FerriteCore
+        forRepository { maven { url = 'https://api.modrinth.com/maven' } }
+        filter { includeGroup 'maven.modrinth' }
+    }
 }
 
 base {
@@ -104,4 +108,11 @@ dependencies {
     // rather than a declared dependency.
     compileOnly("org.appliedenergistics:appliedenergistics2:19.2.17")
     runtimeOnly("org.appliedenergistics:appliedenergistics2:19.2.17")
+
+    // FerriteCore, referenced only by the compat class that disables its ModelResourceLocation cache.
+    // 7.0.2 is the first 1.21.1 build that lets another mod switch an option off. The runtimeOnly line
+    // keeps it in the development runs so that the compat path is actually exercised; drop it if you do
+    // not want FerriteCore's own optimisations active while testing.
+    compileOnly("maven.modrinth:ferrite-core:7.0.3-neoforge")
+    runtimeOnly("maven.modrinth:ferrite-core:7.0.3-neoforge")
 }

@@ -1,7 +1,6 @@
 package io.github.nutant.leanobject.mixin.model;
 
 import com.google.common.collect.ImmutableList;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.MultiPartBakedModel;
 import net.minecraft.world.level.block.state.BlockState;
@@ -14,17 +13,18 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.BitSet;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
 
 /**
- * Swaps the selector cache for a reference-keyed map and freezes the selector list.
+ * Freezes the selector list into an {@link ImmutableList}, which is smaller than the list the bakery
+ * hands over.
+ *
+ * <p>Only the list is left to do here: 1.21 already builds the selector cache as a reference-keyed
+ * map itself, so the 1.20 swap for it has no counterpart.
  */
 @Mixin(value = MultiPartBakedModel.class, priority = 100000)
 public abstract class MultipartBakedModelMixin {
-
 
     @Mutable
     @Shadow
