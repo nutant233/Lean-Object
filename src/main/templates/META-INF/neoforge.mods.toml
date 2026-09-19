@@ -17,3 +17,21 @@ type="required"
 versionRange="${neo_version_range}"
 ordering="NONE"
 side="BOTH"
+
+# Both integrations below are optional: the features that target them check for the mod at runtime and
+# skip themselves when it is absent. The ranges are the first versions this mod was written against -
+# aeKey hooks private members of AE2 19.2.17, and the FerriteCore compat needs the option override
+# added in 7.0.2 - so an older copy is worth reporting instead of failing inside a mixin.
+[[dependencies."${mod_id}"]]
+modId="ae2"
+type="optional"
+versionRange="[19.2.17,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies."${mod_id}"]]
+modId="ferritecore"
+type="optional"
+versionRange="[7.0.2,)"
+ordering="NONE"
+side="BOTH"
