@@ -79,6 +79,13 @@ public final class Config implements IMixinConfigPlugin {
                         "onto more compact containers. Client side."
         );
 
+        registerFeaturePackage(
+                "aeKey", false, "ae2",
+                "AEKey Deduplication & Identity Mode",
+                "One AE2 storage key per logical item or fluid value, with equals/hashCode reduced to " +
+                        "identity, so a large ME network stops allocating and hashing a key per lookup."
+        );
+
         configFile = new File(FMLPaths.GAMEDIR.get().toFile(), "config/leanobject.toml");
 
         for (var feature : FEATURE_PACKAGES.values()) {

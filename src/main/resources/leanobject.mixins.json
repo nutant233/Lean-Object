@@ -5,6 +5,12 @@
   "plugin": "io.github.nutant.leanobject.Config",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "aekey.AEFluidKeyAccess",
+    "aekey.AEFluidKeyMixin",
+    "aekey.AEItemKeyAccess",
+    "aekey.AEItemKeyMixin",
+    "aekey.FluidMixin",
+    "aekey.ItemMixin",
     "ingredient.IngredientMixin",
     "ingredient.ItemMixin",
     "ingredient.TagKeyMixin",
@@ -12,10 +18,11 @@
     "nbt.CompoundTagMixin$Type",
     "nbt.ListTagMixin",
     "nbt.ListTagMixin$Type",
-    "resourcelocation.ResourceLocationMixin",
-    "resourcelocation.safe.ResourceLocationMixin",
+    "nbt.NbtOpsMixin",
     "resourcekey.ResourceKeyMixin",
     "resourcekey.safe.ResourceKeyMixin",
+    "resourcelocation.ResourceLocationMixin",
+    "resourcelocation.safe.ResourceLocationMixin",
     "tagkey.TagKeyMixin",
     "tagkey.safe.TagKeyMixin"
   ],
@@ -28,6 +35,7 @@
     "model.MultipartBakedModelMixin",
     "model.SimpleBakedModelMixin",
     "model.WeightedBakedModelMixin",
-    "resourcelocation.ModelResourceLocationMixin"
+    "resourcelocation.ModelResourceLocationMixin",
+    "resourcelocation.safe.ModelResourceLocationMixin"
   ]
 }

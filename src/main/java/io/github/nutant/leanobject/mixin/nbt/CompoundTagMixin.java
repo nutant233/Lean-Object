@@ -68,7 +68,7 @@ public abstract class CompoundTagMixin {
 
         @ModifyVariable(method = "loadCompound", require = 1, at = @At(value = "INVOKE_ASSIGN", target = "Lcom/google/common/collect/Maps;newHashMap()Ljava/util/HashMap;", remap = false))
         private static Map<String, Tag> leanObject$useCompactMap(Map<String, Tag> map) {
-            return new O2OOpenCacheHashMap<>();
+            return new O2OOpenCacheHashMap<>(0);
         }
 
         @Redirect(method = "loadCompound", require = 1, at = @At(value = "INVOKE", target = "Lcom/google/common/collect/Maps;newHashMap()Ljava/util/HashMap;", remap = false))

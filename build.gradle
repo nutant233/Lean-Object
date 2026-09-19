@@ -98,4 +98,10 @@ dependencies {
     jarJar(implementation("com.gto.fastcollection:FastCollection:26.8.7")) {
         exclude group: 'it.unimi.dsi', module: 'fastutil'
     }
+
+    // Applied Energistics 2 for NeoForge 1.21.1. The aeKey feature hooks AEItemKey/AEFluidKey, and is
+    // skipped automatically when AE2 is absent - so this stays compile-time plus development runtime
+    // rather than a declared dependency.
+    compileOnly("org.appliedenergistics:appliedenergistics2:19.2.17")
+    runtimeOnly("org.appliedenergistics:appliedenergistics2:19.2.17")
 }
