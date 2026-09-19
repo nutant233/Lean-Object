@@ -14,6 +14,8 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(value = AEFluidKey.class, priority = 100000)
 public class AEFluidKeyMixin {
@@ -21,6 +23,11 @@ public class AEFluidKeyMixin {
     @Shadow(remap = false)
     @Final
     private Fluid fluid;
+
+    @Redirect(method = "<init>",at = @At(value = "INVOKE", target = "Ljava/util/Objects;hash([Ljava/lang/Object;)I"))
+    private int hash(Object[] values) {
+        return System.identityHashCode(this);
+    }
 
     /**
      * @author

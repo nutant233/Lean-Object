@@ -17,6 +17,8 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(value = AEItemKey.class, priority = 100000)
 public class AEItemKeyMixin {
@@ -24,6 +26,11 @@ public class AEItemKeyMixin {
     @Shadow(remap = false)
     @Final
     private Item item;
+
+    @Redirect(method = "<init>",at = @At(value = "INVOKE", target = "Ljava/util/Objects;hash([Ljava/lang/Object;)I"))
+    private int hash(Object[] values) {
+        return System.identityHashCode(this);
+    }
 
     /**
      * @author
