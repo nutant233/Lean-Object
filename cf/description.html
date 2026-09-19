@@ -1,20 +1,22 @@
 <!-- CurseForge project description. Remove this comment before pasting if you like.
      Optional: upload cf/icon.png as the project avatar, and if you make a banner, replace BANNER_URL below.
-     CurseForge sanitizes HTML: supported tags only, <style>/<script>/class/id/style attributes are stripped. -->
+     CurseForge sanitizes HTML: supported tags only, <style>/<script>/class/id/style attributes are stripped.
+     This page is deliberately version independent: it describes what the mod does, not what any single
+     Minecraft or loader version supports. Per-file differences belong in that file's changelog. -->
 
 <p><strong>Lean Object</strong> makes Minecraft's most-used lookup objects cheaper, by deduplicating them.
 When a value exists exactly once, comparing it becomes a pointer compare instead of a string compare —
 and that comparison happens on <em>every</em> registry lookup, tag check and ingredient match.</p>
 
-<p>For <strong>Minecraft 1.21.1 / NeoForge</strong>. Requires Java 21 and NeoForge 21.1.169 or newer.</p>
+<p>Download the file that matches your Minecraft version and mod loader.</p>
 
 <h2>Why deduplication makes things faster</h2>
 
 <p>A hash code only picks the bucket. Every collision inside that bucket is then resolved with
-<code>equals()</code>, and that is where the expensive work happens — for a <code>TagKey</code>, comparing
-a <code>ResourceKey</code> and a <code>ResourceLocation</code>, i.e. string chains. Modded packs make this
-worse: thousands of identifiers sharing prefixes like <code>minecraft:</code> or <code>mymod:</code> have
-hash codes that cluster, so the buckets where comparisons pile up are exactly the busy ones.</p>
+<code>equals()</code>, and that is where the expensive work happens — for a tag key, comparing a registry
+key and a location, i.e. string chains. Modded packs make this worse: thousands of identifiers sharing
+prefixes like <code>minecraft:</code> or <code>mymod:</code> have hash codes that cluster, so the buckets
+where comparisons pile up are exactly the busy ones.</p>
 
 <p>Keep only one instance per logical value, and <code>equals</code> can be reduced to
 <code>o == this</code> and <code>hashCode</code> to <code>System.identityHashCode</code>. Every one of those
@@ -32,9 +34,9 @@ comparisons becomes a pointer compare. Less memory is a side effect of the same 
   <tbody>
     <tr>
       <td><strong>ResourceLocation</strong></td>
-      <td>One instance per <code>namespace:path</code>. Duplicate instances and their strings disappear,
-      and <code>equals</code>/<code>hashCode</code> become identity based, so registry and model lookups
-      compare pointers. A non-destructive mode keeps value comparison while still sharing instances.</td>
+      <td>One shared instance per id. The duplicate instances and their strings disappear, and location
+      comparisons stop being string comparisons, which is what registry and model lookups spend their
+      time on.</td>
     </tr>
     <tr>
       <td><strong>TagKey</strong></td>
@@ -43,9 +45,8 @@ comparisons becomes a pointer compare. Less memory is a side effect of the same 
     </tr>
     <tr>
       <td><strong>ResourceKey</strong></td>
-      <td>Replaces vanilla's interning map with a leaner one, so registry keys are built with a single
-      cache probe instead of filling a <code>ConcurrentMap</code>. Identity comparison is already how
-      1.21.1 keys behave, and stays that way.</td>
+      <td>Registry keys are built with a single cache probe instead of filling the vanilla intern map,
+      so key creation is cheaper and allocates less.</td>
     </tr>
     <tr>
       <td><strong>Ingredient</strong></td>
@@ -54,8 +55,8 @@ comparisons becomes a pointer compare. Less memory is a side effect of the same 
     </tr>
     <tr>
       <td><strong>NBT containers</strong></td>
-      <td>Replaces the maps and lists inside <code>CompoundTag</code>, <code>ListTag</code> and NBT record
-      building with leaner equivalents.</td>
+      <td>Replaces the maps and lists inside the tag classes with leaner equivalents, at the allocation
+      site, so the vanilla containers are never created.</td>
     </tr>
     <tr>
       <td><strong>Model objects</strong></td>
@@ -63,34 +64,37 @@ comparisons becomes a pointer compare. Less memory is a side effect of the same 
     </tr>
     <tr>
       <td><strong>AE2 storage keys</strong></td>
-      <td>Deduplicates AE2 <code>AEItemKey</code> / <code>AEFluidKey</code>, and replaces the hash AE2
-      caches in its constructor with the identity hash. Requires AE2.</td>
+      <td>Deduplicates AE2's item and fluid storage keys, so a large ME network stops allocating and
+      hashing a key per lookup. Requires AE2.</td>
     </tr>
   </tbody>
 </table>
 
+<p>Features that target another mod are only applied when that mod is present, and skipped otherwise —
+AE2, Farmer's Delight and FerriteCore are all handled this way, and none of them has to be configured by
+hand. Since the mods available for a given Minecraft version differ, the exact set of features can differ
+between files; <code>config/leanobject.toml</code> always lists the ones that file supports.</p>
+
 <h2>Playing a tech pack? Turn on AE2 key deduplication</h2>
 
-<p>Official AE2 has <strong>no interning for storage keys</strong> — <code>AEItemKey</code>'s constructor is
-private and every factory builds a new key object. A late-game ME network is little but keys: banks of
-interfaces, storage buses, import/export buses and crafting CPUs hold enormous numbers of them, all
-allocated on demand and compared by value.</p>
+<p>AE2 itself has <strong>no interning for storage keys</strong>: every factory builds a fresh key object
+and hashes its contents, so a late-game ME network is little but keys — banks of interfaces, storage
+buses, import/export buses and crafting CPUs hold enormous numbers of them, all allocated on demand and
+compared by value.</p>
 
 <p>That is exactly the workload this feature targets, and it speeds up key <em>creation</em>, not just key
 lookup:</p>
 
 <ul>
-  <li>Vanilla allocates a new key object and hashes its components in the constructor, storing the result
-  in a final field that <code>hashCode()</code> merely returns.</li>
-  <li>With this mod, a key without components becomes a <strong>field read</strong>: the shared instance is
-  fetched from the item, with no allocation and no hashing at all.</li>
-  <li>A key carrying components costs <strong>one cache probe keyed by the component patch</strong>, and
-  that is the entire cost. Only the first probe for a given patch allocates anything; repeats return the
+  <li>A key without components becomes a <strong>shared instance lookup</strong> — no allocation and no
+  hashing at all.</li>
+  <li>A key carrying components costs <strong>one cache probe keyed by those components</strong>, and that
+  is the entire cost. Only the first probe for a given value allocates anything; repeats return the
   existing key.</li>
-  <li>The hash the constructor computes is replaced with the identity hash at the point it is computed,
-  so the cached field and <code>hashCode()</code> stay consistent with identity comparison.</li>
-  <li>All the other factories are routed through the same cache too — the packet reader, and the codec
-  factory that NBT and JSON parsing both go through.</li>
+  <li>With keys existing once, comparisons become reference checks, and the hash the key caches is the
+  identity hash — which is what a large network spends its time on.</li>
+  <li>The packet reader and the serialization codecs are routed through the same cache, so keys that
+  arrive over the network or are loaded from disk are shared too.</li>
 </ul>
 
 <p>In a modded pack this happens constantly. AE2 rarely works on its own storage: storage buses, import
@@ -122,41 +126,32 @@ loggingInGC = true      # force a GC and log heap usage when joining a world
     enabled = true
 </code></pre>
 
-<p><strong><code>safeMode</code></strong> applies to the features that ship a non-destructive variant
-(<code>resourceKey</code>, <code>tagKey</code>, <code>resourceLocation</code>). Set it to <code>true</code>
-if another mod conflicts with the replacing path — it wraps the original methods instead. For
-<code>resourceLocation</code> that also means <code>equals</code>/<code>hashCode</code> stay value based,
-which is the conservative combination.</p>
+<p><strong><code>safeMode</code></strong> applies to the features that ship a non-destructive variant. Set
+it to <code>true</code> if another mod conflicts with the replacing path: it wraps the original methods
+instead, which is more compatible but slightly slower, and it gives up the identity comparison.</p>
 
 <h2>Compatibility notes</h2>
 
 <ul>
-  <li><strong>FerriteCore is handled automatically.</strong> FerriteCore's
-  <code>ModelResourceLocation</code> cache and this mod's <code>resourceLocation</code> feature replace the
-  same call, and two replacements cannot both inject — so FerriteCore's option is switched off while this
-  mod owns that path. Requires FerriteCore 7.0.2 or newer, the first version that lets another mod do
-  this.</li>
+  <li><strong>FerriteCore is handled automatically.</strong> Where FerriteCore caches the same model
+  location call this mod replaces, its own handling is switched off — two replacements cannot both inject
+  into one instruction. This needs a FerriteCore build that allows other mods to disable an option.</li>
   <li><strong>Injection conflicts.</strong> Most features replace methods outright. If another mod
   modifies the same target, the two fight and the last one applied wins. The model feature in particular
   is known to conflict on large packs; it can be turned off on its own.</li>
   <li><strong>Reference equality.</strong> Interned keys compare by reference, so a value created outside
-  the interning entry points will not compare equal to its interned twin. In 1.21.1 nothing in Minecraft
-  or NeoForge constructs a <code>ResourceLocation</code> directly, so this only concerns mods that reach
-  the constructor through their own access transformer.</li>
-  <li><strong>AE2 support is version specific.</strong> It targets official AE2 19.2.17 and hooks private
-  members of <code>AEItemKey</code>/<code>AEFluidKey</code>. Forks or other builds can change those
-  internals, in which case the feature fails to apply loudly instead of misbehaving.</li>
+  the interning entry points will not compare equal to its interned twin. Where a feature ships a
+  non-destructive variant, switching to it keeps value comparison instead.</li>
+  <li><strong>AE2 support is version specific.</strong> It hooks private members of AE2's key classes, so
+  forks or other builds of AE2 can change those internals — in which case the feature fails to apply
+  loudly rather than misbehaving.</li>
   <li><strong>Optional integrations are auto-detected.</strong> Features whose mod is not installed are
   skipped automatically.</li>
-  <li><strong>No Farmer's Delight support on 1.21.1.</strong> The 1.20.1 line has a
-  <code>farmersDelight</code> feature that caches <code>ToolActionIngredient</code>; Farmer's Delight has
-  no 1.21.1 build this port could compile against, so there is simply no such feature here. Recipes are
-  parsed exactly as they would be without the mod.</li>
-  <li><strong><code>ResourceLocation</code> interning costs CPU as well as saving memory.</strong> It is
-  constructed extremely often, and interning adds a cache probe to every construction. It pays off when
-  the same id is created repeatedly; it can cost CPU on hot paths that keep producing <em>distinct</em>
-  ids, where nothing gets shared. If you are chasing CPU rather than memory, try turning this one feature
-  off first.</li>
+  <li><strong>Location interning costs CPU as well as saving memory.</strong> Locations are constructed
+  extremely often, and interning adds a cache probe to every construction. It pays off when the same id is
+  created repeatedly; it can cost CPU on hot paths that keep producing <em>distinct</em> ids, where
+  nothing gets shared. If you are chasing CPU rather than memory, try turning this one feature off
+  first.</li>
 </ul>
 
 <h2>Building from source</h2>
