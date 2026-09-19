@@ -3,7 +3,7 @@ package io.github.nutant.leanobject;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
-import net.neoforged.fml.ModList;
+import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLPaths;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -89,7 +89,7 @@ public final class Config implements IMixinConfigPlugin {
         configFile = new File(FMLPaths.GAMEDIR.get().toFile(), "config/leanobject.toml");
 
         for (var feature : FEATURE_PACKAGES.values()) {
-            featureConfigs.put(feature.name, new FeatureConfig(feature.name, true, feature.dependency == null || ModList.get().isLoaded(feature.dependency), false));
+            featureConfigs.put(feature.name, new FeatureConfig(feature.name, true, feature.dependency == null || FMLLoader.getLoadingModList().getModFileById(feature.dependency) != null, false));
         }
 
         loadAllConfigs();
