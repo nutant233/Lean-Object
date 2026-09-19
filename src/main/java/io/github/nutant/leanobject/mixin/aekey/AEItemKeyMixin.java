@@ -49,7 +49,7 @@ public class AEItemKeyMixin {
      */
     @Overwrite(remap = false)
     public static AEItemKey of(ItemLike item) {
-        var ae = (IAEItem) item;
+        var ae = (IAEItem) item.asItem();
         return ae.lo$getAEKey();
     }
 
@@ -59,7 +59,7 @@ public class AEItemKeyMixin {
      */
     @Overwrite(remap = false)
     public static AEItemKey of(ItemLike item, @Nullable CompoundTag tag) {
-        var ae = (IAEItem) item;
+        var ae = (IAEItem) item.asItem();
         if (tag == null || tag.isEmpty()) {
             return ae.lo$getAEKey();
         } else {

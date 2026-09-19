@@ -60,7 +60,7 @@ public abstract class CompoundTagMixin {
 
         @ModifyVariable(method = "load(Ljava/io/DataInput;ILnet/minecraft/nbt/NbtAccounter;)Lnet/minecraft/nbt/CompoundTag;", at = @At(value = "INVOKE_ASSIGN", target = "Lcom/google/common/collect/Maps;newHashMap()Ljava/util/HashMap;", remap = false))
         private Map<String, Tag> useFasterCollection(Map<String, Tag> map) {
-            return new O2OOpenCacheHashMap<>();
+            return new O2OOpenCacheHashMap<>(0);
         }
 
         @Redirect(method = "load(Ljava/io/DataInput;ILnet/minecraft/nbt/NbtAccounter;)Lnet/minecraft/nbt/CompoundTag;", at = @At(value = "INVOKE", target = "Lcom/google/common/collect/Maps;newHashMap()Ljava/util/HashMap;", remap = false))
