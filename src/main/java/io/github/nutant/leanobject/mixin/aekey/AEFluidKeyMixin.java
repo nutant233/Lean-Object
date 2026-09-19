@@ -8,8 +8,10 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.FluidStack;
 import org.jetbrains.annotations.Nullable;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
@@ -27,6 +29,10 @@ import org.spongepowered.asm.mixin.injection.Redirect;
  */
 @Mixin(value = AEFluidKey.class, priority = 100000)
 public class AEFluidKeyMixin {
+
+    @Shadow
+    @Final
+    private FluidStack stack;
 
     /**
      * AE2 computes the content hash in its constructor and stores it in a final field which
@@ -86,6 +92,16 @@ public class AEFluidKeyMixin {
     @Overwrite(remap = false)
     public static AEFluidKey of(Fluid fluid) {
         var ae = (IAEFluid) fluid;
+        return ae.lo$getAEKey();
+    }
+
+    /**
+     * @author nutant233
+     * @reason Return the fluid's shared component-free key
+     */
+    @Overwrite(remap = false)
+    public AEFluidKey dropSecondary() {
+        var ae = (IAEFluid) stack.getFluid();
         return ae.lo$getAEKey();
     }
 

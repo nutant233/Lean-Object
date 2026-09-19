@@ -1,6 +1,8 @@
 package io.github.nutant.leanobject.mixin.aekey;
 
+import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
+import io.github.nutant.leanobject.compat.ae2.IAEFluid;
 import io.github.nutant.leanobject.compat.ae2.IAEItem;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentPatch;
@@ -9,8 +11,10 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import org.jetbrains.annotations.Nullable;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
@@ -34,6 +38,10 @@ import org.spongepowered.asm.mixin.injection.Redirect;
  */
 @Mixin(value = AEItemKey.class, priority = 100000)
 public class AEItemKeyMixin {
+
+    @Shadow
+    @Final
+    private ItemStack stack;
 
     /**
      * AE2 computes the content hash in its constructor and stores it in a final field which
@@ -76,6 +84,17 @@ public class AEItemKeyMixin {
         var cache = ae.lo$getComponentAEKeyCache();
         return cache.getCache(patch, cache.createFunction());
     }
+
+    /**
+     * @author nutant233
+     * @reason Return the item's shared component-free key
+     */
+    @Overwrite(remap = false)
+    public AEItemKey dropSecondary() {
+        var ae = (IAEItem) stack.getItem();
+        return ae.lo$getAEKey();
+    }
+
 
     /**
      * @author nutant233
