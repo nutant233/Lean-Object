@@ -21,26 +21,40 @@ import org.spongepowered.asm.mixin.Unique;
 public abstract class FluidMixin implements IAEFluid {
 
     @Unique
-    private AEFluidKey leanObject$aeKey;
+    private volatile AEFluidKey leanObject$aeKey;
 
     @Unique
-    private WeakValueHashCache<DataComponentPatch, AEFluidKey> leanObject$componentKeys;
+    private volatile WeakValueHashCache<DataComponentPatch, AEFluidKey> leanObject$componentKeys;
 
     @Override
     public AEFluidKey lo$getAEKey() {
         var cached = leanObject$aeKey;
-        if (cached == null) {
-            leanObject$aeKey = cached = AEFluidKeyAccess.of(new FluidStack((Fluid) (Object) this, 1));
+        if (cached != null) return cached;
+        // Built outside the monitor: AE2's constructor may run another mod's dynamic hooks, and those
+        // must never execute while this lock is held. The loser of a race drops its own instance, since
+        // these keys compare by identity.
+        var key = AEFluidKeyAccess.of(new FluidStack((Fluid) (Object) this, 1));
+        synchronized (this) {
+            if (leanObject$aeKey == null) {
+                leanObject$aeKey = key;
+                return key;
+            }
+            return leanObject$aeKey;
         }
-        return cached;
     }
 
     @Override
     public WeakValueHashCache<DataComponentPatch, AEFluidKey> lo$getComponentAEKeyCache() {
         var cache = leanObject$componentKeys;
-        if (cache == null) {
-            leanObject$componentKeys = cache = new WeakValueHashCache<>(p -> AEFluidKeyAccess.of(new FluidStack(((Fluid) (Object) this).builtInRegistryHolder(), 1, p)));
+        if (cache != null) return cache;
+        var created = new WeakValueHashCache<DataComponentPatch, AEFluidKey>(
+                p -> AEFluidKeyAccess.of(new FluidStack(((Fluid) (Object) this).builtInRegistryHolder(), 1, p)));
+        synchronized (this) {
+            if (leanObject$componentKeys == null) {
+                leanObject$componentKeys = created;
+                return created;
+            }
+            return leanObject$componentKeys;
         }
-        return cache;
     }
 }

@@ -9,6 +9,7 @@ import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -92,7 +93,7 @@ public class AEItemKeyMixin {
     @Overwrite(remap = false)
     public AEItemKey dropSecondary() {
         var ae = (IAEItem) stack.getItem();
-        return ae.lo$getAEKey();
+        return ae.lo$getDefaultStackAEKey();
     }
 
 
@@ -110,9 +111,11 @@ public class AEItemKeyMixin {
      * @reason Return the item's shared component-free key
      */
     @Overwrite(remap = false)
-    public static AEItemKey of(ItemLike item) {
-        var ae = (IAEItem) item.asItem();
-        return ae.lo$getAEKey();
+    public static AEItemKey of(ItemLike like) {
+        var item  = like.asItem();
+        if (item== Items.AIR) return null;
+        var ae = (IAEItem) item;
+        return ae.lo$getDefaultStackAEKey();
     }
 
     /**
