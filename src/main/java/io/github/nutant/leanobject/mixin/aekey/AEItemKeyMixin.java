@@ -13,23 +13,40 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import org.jetbrains.annotations.Nullable;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(value = AEItemKey.class, priority = 100000)
-public class AEItemKeyMixin {
+public abstract class AEItemKeyMixin {
 
     @Shadow(remap = false)
     @Final
     private Item item;
 
+    @Shadow
+    public abstract ItemStack getReadOnlyStack();
+
+    @Unique
+    private int leanObject$maxDamage;
+
     @Redirect(method = "<init>",at = @At(value = "INVOKE", target = "Ljava/util/Objects;hash([Ljava/lang/Object;)I"))
     private int hash(Object[] values) {
+        leanObject$maxDamage = -1;
         return System.identityHashCode(this);
+    }
+
+    /**
+     * @author
+     * @reason
+     */
+    @Overwrite(remap = false)
+    public int getFuzzySearchMaxValue() {
+        var max = leanObject$maxDamage;
+        if (max == -1) {
+            max = leanObject$maxDamage = getReadOnlyStack().getMaxDamage();
+        }
+        return max;
     }
 
     /**
