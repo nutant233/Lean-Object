@@ -124,5 +124,7 @@ dependencies {
     // keeps it in the development runs so that the compat path is actually exercised; drop it if you do
     // not want FerriteCore's own optimisations active while testing.
     compileOnly("maven.modrinth:ferrite-core:7.0.3-neoforge")
+    // dev runtime only: compatibility testing against ModernFix's model and resource patches
+    runtimeOnly("maven.modrinth:modernfix:5.27.27+mc1.21.1")
     runtimeOnly("maven.modrinth:ferrite-core:7.0.3-neoforge")
 }
