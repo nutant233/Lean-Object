@@ -19,10 +19,8 @@
     "ingredient.TagKeyMixin",
     "ingredient.VanillaIngredientSerializerMixin",
     "nbt.CompoundTagMixin",
-    "nbt.CompoundTagMixin$Type",
     "nbt.ListTagMixin",
-    "nbt.ListTagMixin$Type",
-    "nbt.NbtOpsMixin",
+    "registryobject.RegistryObjectMixin",
     "resourcekey.ResourceKeyMixin",
     "resourcekey.safe.ResourceKeyMixin",
     "resourcelocation.ResourceLocationMixin",
@@ -34,9 +32,9 @@
     "maxShiftBy": 5
   },
   "client": [
+    "model.BlockElementFaceMixin",
     "model.ModelBakeryMixin",
     "model.MultipartBakedModelMixin",
-    "model.SimpleBakedModelMixin",
     "model.WeightedBakedModelMixin",
     "resourcelocation.ModelResourceLocationMixin"
   ]

@@ -16,7 +16,7 @@ repositories {
     }
     mavenCentral()
 
-    maven { url = 'https://maven.gtodyssey.com/releases' }
+    maven { url = 'https://gtodyssey.com/maven/releases' }
     exclusiveContent { // Curseforge Maven
         forRepository { maven { url = "https://cursemaven.com" } }
         filter { includeGroup("curse.maven") }
@@ -216,7 +216,7 @@ dependencies {
     modImplementation("appeng:appliedenergistics2-forge:15.4.10")
     modRuntimeOnly("org.appliedenergistics:guideme:20.1.15")
 
-    jarJar(implementation("com.gto.fastcollection:FastCollection:26.8.7"))
+    jarJar(implementation("com.gto.fastcollection:FastCollection:26.11.1"))
 
     modImplementation("curse.maven:farmers-delight-398521:8083474")
 }

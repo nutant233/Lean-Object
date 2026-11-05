@@ -86,6 +86,14 @@ public final class Config implements IMixinConfigPlugin {
                 "Deduplicates ToolActionIngredient instances parsed from recipe JSON and network packets."
         );
 
+        registerFeaturePackage(
+                "registryObject", false,
+                "RegistryObject Lazy Caller Stack",
+                "Every RegistryObject.create captures a Throwable so a failed lookup can report where the " +
+                        "wrapper came from, and capturing one walks the stack. This shares a single instance instead, " +
+                        "so creating wrappers no longer pays for a stack trace each time."
+        );
+
         configFile = new File(FMLLoader.getGamePath().toFile(), "config/leanobject.toml");
 
         for (var feature : FEATURE_PACKAGES.values()) {
@@ -243,6 +251,9 @@ public final class Config implements IMixinConfigPlugin {
             return false;
         }
 
+        if (targetClassName.equals("net.minecraft.client.resources.model.ModelBakery")&& FMLLoader.getLoadingModList().getModFileById("modernfix") != null) {
+            return false;
+        }
         LOGGER.info("ApplyMixin: {}", mixinClassName);
         return true;
     }
