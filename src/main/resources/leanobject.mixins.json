@@ -29,6 +29,7 @@
   },
   "client": [
     "model.BlockElementFaceMixin",
+    "model.BlockStateModelLoaderMixin",
     "model.ModelBakeryMixin",
     "model.MultipartBakedModelMixin",
     "model.WeightedBakedModelMixin",

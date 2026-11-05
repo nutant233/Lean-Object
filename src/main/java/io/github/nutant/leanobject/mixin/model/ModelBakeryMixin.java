@@ -25,7 +25,7 @@ import java.util.Set;
  * Moves the bakery's lookup maps and its loading stack onto the compact containers.
  *
  * <p>1.21 no longer keeps {@code blockStateResources} on the bakery - block state loading moved to
- * {@code BlockStateModelLoader} - so that part of the 1.20 version has no counterpart here. The top
+ * {@code BlockStateModelLoader}, where BlockStateModelLoaderMixin compacts it instead. The top
  * level maps are also keyed by {@link ModelResourceLocation} rather than {@link ResourceLocation}.
  */
 @Mixin(value = ModelBakery.class, priority = 100000)
