@@ -1,5 +1,31 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- **NBT containers are back to the vanilla implementations.** `CompoundTagMixin` and `ListTagMixin` no longer
+  replace `HashMap`/`ArrayList` with FastCollection's containers and no longer intercept the deserialization
+  paths; both keep only the `copy()` overwrite, which sizes the replacement exactly at the source's size.
+- FastCollection `26.8.7` → `26.11.1`, fetched from `https://gtodyssey.com/maven/releases`.
+
+### Added
+
+- `BlockElementFaceMixin` (client): interns the texture name in `BlockElementFace`'s constructor, so the many
+  model faces that point at the same texture share one `String`.
+
+### Removed
+
+- `nbt.NbtOpsMixin`: its fast paths belonged to the container swap that has been rolled back.
+- `model.SimpleBakedModelMixin`: the face and selector list compaction did not pay for itself.
+- The `nbt.CompoundTagMixin$Type` and `nbt.ListTagMixin$Type` inner mixins, which targeted the deserialization
+  paths (`CompoundTag$1#loadCompound` and `ListTag$1#loadList`).
+
+### Not ported
+
+- The `registryObject` feature that Forge 1.20 gained: NeoForge 1.21.1 no longer has `RegistryObject` (it is
+  `DeferredHolder`, which does not capture a caller stack), so there is nothing to inject.
+
 ## 1.21.1-26.9.1-neoforge — first NeoForge release
 
 **Summary (goes in the mod listing's short-summary field — under Modrinth's 256 character limit):**

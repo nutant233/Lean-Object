@@ -12,7 +12,7 @@ group = mod_group_id
 repositories {
     mavenCentral()
     mavenLocal()
-    maven { url = 'https://maven.gtodyssey.com/releases' }
+    maven { url = 'https://gtodyssey.com/maven/releases' }
     exclusiveContent { // Modrinth maven, used for FerriteCore
         forRepository { maven { url = 'https://api.modrinth.com/maven' } }
         filter { includeGroup 'maven.modrinth' }
@@ -109,7 +109,7 @@ dependencies {
 
     // FastCollection pulls fastutil 8.5.16 transitively; NeoForge 1.21.1 pins fastutil with a
     // strict constraint (8.5.12), so the transitive copy must not be resolved or jarJar'd.
-    jarJar(implementation("com.gto.fastcollection:FastCollection:26.8.7")) {
+    jarJar(implementation("com.gto.fastcollection:FastCollection:26.11.1")) {
         exclude group: 'it.unimi.dsi', module: 'fastutil'
     }
 
