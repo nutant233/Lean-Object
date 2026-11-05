@@ -248,6 +248,13 @@ public final class Config implements IMixinConfigPlugin {
             return false;
         }
 
+        // ModernFix rewrites ModelBakery itself, and two mods cannot both apply their version of that class.
+        if (targetClassName.equals("net.minecraft.client.resources.model.ModelBakery")
+                && FMLLoader.getLoadingModList().getModFileById("modernfix") != null) {
+            LOGGER.info("ModernFix is installed: skipping {}", mixinClassName);
+            return false;
+        }
+
         LOGGER.info("ApplyMixin: {}", mixinClassName);
         return true;
     }

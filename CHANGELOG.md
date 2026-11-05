@@ -14,6 +14,11 @@
 - `BlockElementFaceMixin` (client): interns the texture name in `BlockElementFace`'s constructor, so the many
   model faces that point at the same texture share one `String`.
 
+### Fixed
+
+- **ModernFix compatibility.** ModernFix rewrites `ModelBakery` too, and two mods cannot both replace the
+  same class, so the ModelBakery compaction is skipped while ModernFix is installed.
+
 ### Removed
 
 - `nbt.NbtOpsMixin`: its fast paths belonged to the container swap that has been rolled back.
